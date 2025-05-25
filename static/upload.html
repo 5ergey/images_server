@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>upload</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/upload.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header__wrapper">
+        <h1 class="header__title">Upload Photos</h1>
+        <h2 class="header__subtitle">Upload selfies, memes, or any fun pictures here.</h2>
+        </div>
+    </div>
+  </header>
+  <main class="main">
+    <div class="container">
+      <div class="links__wrapper">
+        <a class="link active" href="/upload">Upload</a>
+        <a class="link" href="/images">Images</a>
+      </div>
+      <form id="dropzone" action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" id="fileInput" style="display: none;" />
+        <img src="icon/upload_icon.png" alt="upload" class="dropzone__logo">
+        <div class="dropzone__text">
+          <div class="dropzone__text-title">Select a file or drag and drop here</div>
+          <div class="dropzone__text-warning">
+            <p>Only support .jpg, .png and gif.</p>
+            <p>Maximum file size is 5MB</p>
+          </div>
+          
+        </div>
+        <div class="upload__message">
+          <div id="uploadErrors" class="upload error"></div>
+          <div id="uploadSuccess" class="upload success">
+            </div>
+        </div>
+
+      </form>
+      <div class="button__wrapper">
+        <button class="button" type="submit" form="upload">
+          Browse your file
+        </button>
+      </div>
+      <div class="url">
+        <div class="url__title">Current Upload</div>
+        <div class="url__copy">
+          <button class="button copy">COPY</button>
+        </div>
+      </div>
+      </div>
+  </main>
+
+
+
+
+  <script src="js/upload.js"></script>
+</body>
+</html>

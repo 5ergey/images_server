@@ -1,0 +1,19 @@
+.header__wrapper {
+  padding-top: 30px;
+  padding-bottom: 40px;
+}
+
+.header__title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: -2%;
+
+}
+
+.header__subtitle {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: -4%;
+}
