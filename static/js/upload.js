@@ -3,12 +3,12 @@ const fileInput = document.getElementById('fileInput');
 const errorContainer = document.getElementById('uploadErrors');
 const successContainer = document.getElementById('uploadSuccess');
 let dragCounter = 0;
-setButtonsDisabled(true);
+setButtonsDisabled(true, 'button');
 
 const hoverClassName = "hover";
 
 function uploadSuccess(file) {
-  successContainer.innerHTML = `Файл ${file.name} успешно загружен`;
+  successContainer.innerHTML = `Файл ${file.name} готов к загрузке`;
   successContainer.style.display = 'block';
   errorContainer.style.display = 'none'; // скрываем ошибку
 }
@@ -17,6 +17,7 @@ function uploadFailed(result) {
   errorContainer.innerHTML = `${result}`;
   errorContainer.style.display = 'block';
   successContainer.style.display = 'none'; // скрываем успех
+  setButtonsDisabled(true, 'button');
 }
 
 function validateAndUpload(file) {
@@ -32,13 +33,14 @@ function validateAndUpload(file) {
     return;
   } else {
     uploadSuccess(file);
-    setButtonsDisabled(false);
+    setButtonsDisabled(false, 'button');
+    setButtonsDisabled(true, 'copy');
     return;
   }
 }
 
-function setButtonsDisabled(state) {
-  const buttons = document.querySelectorAll('.copy');
+function setButtonsDisabled(state, buttonClass) {
+  const buttons = document.querySelectorAll(`.${buttonClass}`);
   buttons.forEach(button => button.disabled = state);
 }
 
