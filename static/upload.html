@@ -28,24 +28,22 @@
         <a class="link active" href="/upload">Upload</a>
         <a class="link" href="/images">Images</a>
       </div>
-      <form id="dropzone" action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" id="fileInput" style="display: none;" />
-        <img src="icon/upload_icon.png" alt="upload" class="dropzone__logo">
-        <div class="dropzone__text">
-          <div class="dropzone__text-title">Select a file or drag and drop here</div>
-          <div class="dropzone__text-warning">
-            <p>Only support .jpg, .png and gif.</p>
-            <p>Maximum file size is 5MB</p>
-          </div>
-          
-        </div>
-        <div class="upload__message">
-          <div id="uploadErrors" class="upload error"></div>
-          <div id="uploadSuccess" class="upload success">
+      <div class="form-container">
+        <form id="dropzone" action="/upload" method="post" enctype="multipart/form-data">
+          <input type="file" id="fileInput" style="display: none;" name="file">
+          <img src="icon/upload_icon.png" alt="upload" class="dropzone__logo">
+          <div class="dropzone__text">
+            <div class="dropzone__text-title">Select a file or drag and drop here</div>
+            <div class="dropzone__text-warning">
+              <p>Only support .jpg, .png and gif.</p>
+              <p>Maximum file size is 5MB</p>
             </div>
-        </div>
-
-      </form>
+          </div>
+          <div class="upload__message">
+            <div id="uploadErrors" class="upload error"></div>
+            <div id="uploadSuccess" class="upload success"></div>
+          </div>
+        </form>
       <div class="button__wrapper">
         <button class="button" type="submit" form="dropzone">
           Upload your file
