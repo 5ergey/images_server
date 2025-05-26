@@ -1,158 +1,169 @@
+// === DOM Элементы ===
 const dropZone = document.getElementById("dropzone");
-const fileInput = document.getElementById('fileInput');
-const errorContainer = document.getElementById('uploadErrors');
-const successContainer = document.getElementById('uploadSuccess');
-const urlCopyDiv = document.querySelector('.url__copy');
+const fileInput = document.getElementById("fileInput");
+const errorContainer = document.getElementById("uploadErrors");
+const successContainer = document.getElementById("uploadSuccess");
+const urlCopyDiv = document.querySelector(".url__copy");
+
+// === Константы и состояние ===
+const maxSizeMB = 5;
+const allowedExtensions = ["jpg", "jpeg", "png", "gif"];
+const hoverClassName = "hover";
+const safeMode = false;
 
 let dragCounter = 0;
-const maxSize = 5; // 5 MB
 let selectedFile = null;
-const hoverClassName = "hover";
-const safeMode = false; 
 
-setButtonsDisabled(true, 'button');
+setButtonsDisabled(true, "button");
 
-function uploadSuccess(file) {
-  successContainer.innerHTML = `Файл ${file.name} готов к загрузке`;
-  successContainer.style.display = 'block';
-  errorContainer.style.display = 'none'; // скрываем ошибку
+// === Функции отображения ===
+function showSuccessMessage(message) {
+  successContainer.innerHTML = message;
+  successContainer.style.display = "block";
+  errorContainer.style.display = "none";
 }
 
-function uploadFailed(result) {
-  errorContainer.innerHTML = `${result}`;
-  errorContainer.style.display = 'block';
-  successContainer.style.display = 'none'; // скрываем успех
-  setButtonsDisabled(true, 'button');
+function showErrorMessage(message) {
+  errorContainer.innerHTML = message;
+  errorContainer.style.display = "block";
+  successContainer.style.display = "none";
+  setButtonsDisabled(true, "button");
 }
 
-function validateAndUpload(file) {
-  const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-  const fileExtension = file.name.split('.').pop().toLowerCase();
-
+// === Валидация файла ===
+function validateFile(file) {
+  const extension = file.name.split(".").pop().toLowerCase();
   if (safeMode) {
-    if (!allowedExtensions.includes(fileExtension)) {
-      uploadFailed('Недопустимый формат файла');
-      return;
-    } else if (file.size > maxSize * 1024 * 1024) {
-      uploadFailed(`Размер файла превышает ${maxSize} МБ`);
-      return;
-    } else {
-      uploadSuccess(file);
-      selectedFile = file;
-      setButtonsDisabled(false, 'button');
-      setButtonsDisabled(true, 'copy');
-      return;
+    if (!allowedExtensions.includes(extension)) {
+      return "Недопустимый формат файла";
     }
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      return `Размер файла превышает ${maxSizeMB} МБ`;
+    }
+  }
+  return null;
+}
+
+// === Основной процесс валидации и подготовки к загрузке ===
+function validateAndPrepare(file) {
+  const error = validateFile(file);
+  if (error) {
+    showErrorMessage(error);
+    return;
+  }
+
+  selectedFile = file;
+  showSuccessMessage(`Файл ${file.name} готов к загрузке`);
+  setButtonsDisabled(false, "button");
+  setButtonsDisabled(true, "copy");
+}
+
+// === Кнопки ===
+function setButtonsDisabled(state, className) {
+  document.querySelectorAll(`.${className}`).forEach(btn => {
+    btn.disabled = state;
+  });
+}
+
+// === Обработка копирования URL ===
+function setupCopyButton(copyText) {
+  const span = document.createElement("span");
+  span.textContent = copyText;
+
+  const container = document.querySelector(".url__copy");
+  const button = container.querySelector("button");
+
+  container.innerHTML = ''; // Очистить перед добавлением нового
+  container.appendChild(span);
+  container.appendChild(button);
+  container.style.justifyContent = "space-between";
+
+  setButtonsDisabled(false, "copy");
+
+  const copyButton = container.querySelector(".copy");
+  copyButton.addEventListener("click", () => {
+    navigator.clipboard.writeText(span.textContent)
+      .then(() => {
+        copyButton.textContent = "COPIED";
+        copyButton.classList.add("expanded");
+        setTimeout(() => {
+          copyButton.textContent = "COPY";
+          copyButton.classList.remove("expanded");
+        }, 2000);
+      })
+      .catch(err => console.error("Ошибка копирования:", err));
+  });
+}
+
+// === Обработка ответа от сервера ===
+function handleServerResponse(result) {
+  if (result.status === "success") {
+    showSuccessMessage(result.message);
+    setButtonsDisabled(true, "button");
+    setupCopyButton(result.url);
   } else {
-    // Тут safeMode всегда true, эта ветка не будет работать, но оставил на всякий
-    uploadSuccess(file);
-    selectedFile = file;
-    setButtonsDisabled(false, 'button');
-    setButtonsDisabled(true, 'copy');
+    showErrorMessage(result.message || "Ошибка загрузки");
   }
 }
 
-function setButtonsDisabled(state, buttonClass) {
-  const buttons = document.querySelectorAll(`.${buttonClass}`);
-  buttons.forEach(button => button.disabled = state);
+// === Загрузка на сервер ===
+async function uploadToServer(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await fetch("/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const result = await response.json();
+    handleServerResponse(result);
+  } catch (err) {
+    showErrorMessage("Ошибка при отправке на сервер");
+  }
 }
 
-
-dropZone.addEventListener("dragenter", function (e) {
+// === Drag-and-Drop ===
+dropZone.addEventListener("dragenter", e => {
   e.preventDefault();
   dragCounter++;
   dropZone.classList.add(hoverClassName);
 });
 
-dropZone.addEventListener("dragover", function (e) {
+dropZone.addEventListener("dragover", e => {
   e.preventDefault();
-  dropZone.classList.add(hoverClassName);
 });
 
-dropZone.addEventListener("dragleave", function (e) {
+dropZone.addEventListener("dragleave", e => {
   e.preventDefault();
   dragCounter--;
-  if (dragCounter === 0) {
-    dropZone.classList.remove(hoverClassName);
-  }
+  if (dragCounter === 0) dropZone.classList.remove(hoverClassName);
 });
 
-dropZone.addEventListener("drop", function (e) {
+dropZone.addEventListener("drop", e => {
   e.preventDefault();
+  dragCounter = 0;
   dropZone.classList.remove(hoverClassName);
+
   const files = Array.from(e.dataTransfer.files);
-  if (files.length > 0) {
-    const file = files[0];
-    validateAndUpload(file);
-  }
+  if (files.length > 0) validateAndPrepare(files[0]);
 });
 
-dropZone.addEventListener("click", function (e) {
-  fileInput.click();
-});
+// === Click по области выбора ===
+dropZone.addEventListener("click", () => fileInput.click());
 
-fileInput.addEventListener('change', (e) => {
+// === Выбор через input ===
+fileInput.addEventListener("change", e => {
   const file = e.target.files[0];
-  if (file) {
-    validateAndUpload(file);
-  }
+  if (file) validateAndPrepare(file);
 });
 
-dropZone.addEventListener('submit', function (e) {
+// === Отправка файла ===
+dropZone.addEventListener("submit", e => {
   e.preventDefault();
-
   if (!selectedFile) {
-    uploadFailed('Сначала выберите файл');
+    showErrorMessage("Сначала выберите файл");
     return;
   }
-
   uploadToServer(selectedFile);
 });
-
-async function uploadToServer(file) {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  try {
-    const response = await fetch('/upload', {
-      method: 'POST',
-      body: formData
-    });
-
-    const result = await response.json();
-
-    if (result.status === 'success') {
-      successContainer.innerHTML = result.message;
-      successContainer.style.display = 'block';
-      errorContainer.style.display = 'none';
-      setButtonsDisabled(true, 'button');
-      const container = document.querySelector('.url__copy');
-      const span = document.createElement('span');
-      span.textContent = result.url;
-      const button = container.querySelector('button');
-      container.insertBefore(span, button);
-      container.style.justifyContent = 'space-between'
-      setButtonsDisabled(false, 'copy');
-      const copyButton = container.querySelector('.copy');
-      copyButton.addEventListener('click', () => {
-        // Копируем текст из span
-        navigator.clipboard.writeText(span.textContent)
-          .then(() => {
-            copyButton.textContent = "COPIED";
-            copyButton.classList.add("expanded");
-            setTimeout(() => {
-              copyButton.textContent = "COPY";
-              copyButton.classList.remove("expanded")
-            }, 2000);
-          })
-          .catch(err => {
-            console.error("Ошибка копирования:", err);
-          });
-      });
-    } else {
-      uploadFailed(result.message);
-    }
-  } catch (err) {
-    uploadFailed('Ошибка при отправке на сервер');
-  }
-}
