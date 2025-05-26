@@ -132,6 +132,23 @@ async function uploadToServer(file) {
       const button = container.querySelector('button');
       container.insertBefore(span, button);
       container.style.justifyContent = 'space-between'
+      setButtonsDisabled(false, 'copy');
+      const copyButton = container.querySelector('.copy');
+      copyButton.addEventListener('click', () => {
+        // Копируем текст из span
+        navigator.clipboard.writeText(span.textContent)
+          .then(() => {
+            copyButton.textContent = "COPIED";
+            copyButton.classList.add("expanded");
+            setTimeout(() => {
+              copyButton.textContent = "COPY";
+              copyButton.classList.remove("expanded")
+            }, 2000);
+          })
+          .catch(err => {
+            console.error("Ошибка копирования:", err);
+          });
+      });
     } else {
       uploadFailed(result.message);
     }

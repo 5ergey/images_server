@@ -154,6 +154,9 @@ body {
     height: 30px;
     margin-right: 16px;
     align-self: center;
-
   }
+  .copy.expanded {
+    min-width: 80px;
+  }
+
   }
