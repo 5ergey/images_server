@@ -46,9 +46,9 @@ class BackendHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'application/json')
         self.end_headers()
 
-    def send_json_message(self, code, status, message):
+    def send_json_message(self, code, status, message, url=''):
         self.set_headers(code)
-        response = {'status': status, 'message': message}
+        response = {'status': status, 'message': message, 'url': url}
         self.wfile.write(json.dumps(response).encode('utf-8'))
 
     def do_GET(self):
@@ -96,13 +96,14 @@ class BackendHandler(BaseHTTPRequestHandler):
             return
 
         # Генерация уникального имени
-        unique_filename = f"{uuid.uuid4().hex}{ext}"
+        unique_filename = f"{uuid.uuid4().hex[:16]}{ext}"
 
         #Сохранение файла
         with open(f'images/{unique_filename}', 'wb') as f:
             f.write(file_data)
 
-        self.send_json_message(200, 'success', 'Файл успешно загружен')
+        self.send_json_message(200, 'success', 'Файл успешно загружен',
+                               f'http://localhost:{PORT}/images/{unique_filename}')
 
 if __name__ == '__main__':
     PORT = 8000

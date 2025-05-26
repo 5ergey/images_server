@@ -8,7 +8,7 @@ let dragCounter = 0;
 const maxSize = 5; // 5 MB
 let selectedFile = null;
 const hoverClassName = "hover";
-const safeMode = false;  // фиксируем всегда true
+const safeMode = false; 
 
 setButtonsDisabled(true, 'button');
 
@@ -57,47 +57,7 @@ function setButtonsDisabled(state, buttonClass) {
   buttons.forEach(button => button.disabled = state);
 }
 
-function resetFileInput() {
-  fileInput.value = '';
-  selectedFile = null;
-  errorContainer.textContent = '';
-  successContainer.textContent = '';
-  successContainer.style.display = 'none';
-  errorContainer.style.display = 'none';
-  setButtonsDisabled(true, 'button');
-  setButtonsDisabled(true, 'copy');
-  clearUploadedFileUrl();
-}
 
-function clearUploadedFileUrl() {
-  urlCopyDiv.innerHTML = ''; // очищаем ссылку и кнопку
-}
-
-function showUploadedFileUrl(url) {
-  if (!url) {
-    clearUploadedFileUrl();
-    return;
-  }
-
-  urlCopyDiv.innerHTML = `
-    <a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>
-    <button class="button copy">COPY</button>
-  `;
-
-  const newCopyButton = urlCopyDiv.querySelector('.copy');
-  newCopyButton.addEventListener('click', () => {
-    navigator.clipboard.writeText(url).then(() => {
-      newCopyButton.textContent = 'Copied!';
-      setTimeout(() => {
-        newCopyButton.textContent = 'COPY';
-      }, 1500);
-    }).catch(() => {
-      alert('Не удалось скопировать ссылку');
-    });
-  });
-}
-
-// Drag and drop events
 dropZone.addEventListener("dragenter", function (e) {
   e.preventDefault();
   dragCounter++;
@@ -166,10 +126,12 @@ async function uploadToServer(file) {
       successContainer.style.display = 'block';
       errorContainer.style.display = 'none';
       setButtonsDisabled(true, 'button');
-
-      showUploadedFileUrl(result.fileUrl);
-
-      resetFileInput();
+      const container = document.querySelector('.url__copy');
+      const span = document.createElement('span');
+      span.textContent = result.url;
+      const button = container.querySelector('button');
+      container.insertBefore(span, button);
+      container.style.justifyContent = 'space-between'
     } else {
       uploadFailed(result.message);
     }
