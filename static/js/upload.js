@@ -9,7 +9,7 @@ const urlCopyDiv = document.querySelector(".url__copy");
 const maxSizeMB = 5;
 const allowedExtensions = ["jpg", "jpeg", "png", "gif"];
 const hoverClassName = "hover";
-const safeMode = false;
+const safeMode = true;
 
 let dragCounter = 0;
 let selectedFile = null;
