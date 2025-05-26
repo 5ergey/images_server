@@ -67,33 +67,37 @@ function setButtonsDisabled(state, className) {
 
 // === Обработка копирования URL ===
 function setupCopyButton(copyText) {
-  const span = document.createElement("span");
-  span.textContent = copyText;
-
   const container = document.querySelector(".url__copy");
-  const button = container.querySelector("button");
+  const span = container.querySelector("span");
+  const copyButton = container.querySelector(".copy");
 
-  container.innerHTML = ''; // Очистить перед добавлением нового
-  container.appendChild(span);
-  container.appendChild(button);
-  container.style.justifyContent = "space-between";
+  // Обновляем текст в существующем span
+  if (span) {
+    span.textContent = copyText;
+    span.style.opacity = 1;
+  }
 
+  // Активируем кнопку
   setButtonsDisabled(false, "copy");
 
-  const copyButton = container.querySelector(".copy");
-  copyButton.addEventListener("click", () => {
-    navigator.clipboard.writeText(span.textContent)
+  // Удаляем старые обработчики, чтобы избежать дублирования
+  const newCopyButton = copyButton.cloneNode(true);
+  copyButton.replaceWith(newCopyButton);
+
+  newCopyButton.addEventListener("click", () => {
+    navigator.clipboard.writeText(copyText)
       .then(() => {
-        copyButton.textContent = "COPIED";
-        copyButton.classList.add("expanded");
+        newCopyButton.textContent = "COPIED";
+        newCopyButton.classList.add("expanded");
         setTimeout(() => {
-          copyButton.textContent = "COPY";
-          copyButton.classList.remove("expanded");
+          newCopyButton.textContent = "COPY";
+          newCopyButton.classList.remove("expanded");
         }, 2000);
       })
       .catch(err => console.error("Ошибка копирования:", err));
   });
 }
+
 
 // === Обработка ответа от сервера ===
 function handleServerResponse(result) {
