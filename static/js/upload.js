@@ -9,7 +9,7 @@ const urlCopyDiv = document.querySelector(".url__copy");
 const maxSizeMB = 5;
 const allowedExtensions = ["jpg", "jpeg", "png", "gif"];
 const hoverClassName = "hover";
-const safeMode = true;
+const safeMode = false;
 
 let dragCounter = 0;
 let selectedFile = null;
@@ -115,16 +115,12 @@ async function uploadToServer(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  try {
-    const response = await fetch("/upload", {
-      method: "POST",
-      body: formData,
+  const response = await fetch("/upload", {
+    method: "POST",
+    body: formData,
     });
     const result = await response.json();
     handleServerResponse(result);
-  } catch (err) {
-    showErrorMessage("Ошибка при отправке на сервер");
-  }
 }
 
 // === Drag-and-Drop ===
