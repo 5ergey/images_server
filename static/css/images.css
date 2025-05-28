@@ -50,9 +50,12 @@
   }
   .delete {
     align-self: end;
-    margin-left: 175px;
+    padding-right: 5px;
   }
   .url {
-    margin-left: 40px;
+    padding-left: 60px;
+    flex: 1;
+    box-sizing: content-box;
+    text-align: left;
   }
 }

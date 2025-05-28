@@ -6,9 +6,10 @@ import uuid
 import json
 import logging
 
-ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif']
+ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif']
 MAX_FILE_SIZE = 5 * 1024 * 1024 # 5 Мбайт
 LOGS_DIR = 'logs'
+IMAGES_DIR = 'images'
 
 #Конфигурируем логгирование
 logging.basicConfig(
@@ -18,6 +19,9 @@ logging.basicConfig(
     filename=f'{LOGS_DIR}/app.log',
     filemode='a'
 )
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 class BackendHandler(BaseHTTPRequestHandler):
     def send_static_file(self, filepath, status_code, content_type):
@@ -74,6 +78,14 @@ class BackendHandler(BaseHTTPRequestHandler):
                 self.path = 'upload.html'
             elif self.path == '/images':
                 self.path = 'images.html'
+            elif self.path == '/images?data=true':
+                os.makedirs(IMAGES_DIR, exist_ok=True)
+                files = [f for f in os.listdir(IMAGES_DIR) if allowed_file(f)]
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps(files).encode())
+                return
             self.handle_file_request(self.path)
         else:
             self.send_static_file('static/403.html', 403, 'text/html')
@@ -124,9 +136,29 @@ class BackendHandler(BaseHTTPRequestHandler):
         with open(f'images/{unique_filename}', 'wb') as f:
             f.write(file_data)
 
+        #Отправка сведений об успешной загрузке
         self.send_json_message(200, 'success', 'Файл успешно загружен',
                                f'http://localhost/images/{unique_filename}')
+        #Логгируем успешную загрузку
         logging.info(f'Успех: Файл ({unique_filename}) сохранен')
+
+    def do_DELETE(self):
+        if self.path.startswith('/images/'):
+            filename = self.path[len('/images/'):]
+            filepath = os.path.join(IMAGES_DIR, filename)
+
+            if os.path.isfile(filepath):
+                try:
+                    os.remove(filepath)
+                    self.send_response(200)
+                    self.end_headers()
+                    self.wfile.write(b'File deleted')
+                except Exception as e:
+                    self.send_error(500, f'Ошибка удаления: {e}')
+            else:
+                self.send_error(404, 'Файл не найден')
+        else:
+            self.send_error(404, 'Not found')
 if __name__ == '__main__':
     PORT = 8000
     server = ThreadingHTTPServer(('0.0.0.0', PORT), BackendHandler)
