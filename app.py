@@ -147,14 +147,20 @@ class BackendHandler(BaseHTTPRequestHandler):
             filename = self.path[len('/images/'):]
             filepath = os.path.join(IMAGES_DIR, filename)
 
+            #Защита от удаления вне images
+            if '..' in filename or '/' in filename or '\\' in filename:
+                self.send_error(400, 'Неверное имя файла')
+                return
             if os.path.isfile(filepath):
                 try:
                     os.remove(filepath)
                     self.send_response(200)
                     self.end_headers()
                     self.wfile.write(b'File deleted')
+                    logging.info(f'Успех: Файл ({filename}) удален')
                 except Exception as e:
                     self.send_error(500, f'Ошибка удаления: {e}')
+                    logging.error(f'Ошибка: Файл {filename} не был удален')
             else:
                 self.send_error(404, 'Файл не найден')
         else:
