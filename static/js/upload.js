@@ -167,3 +167,6 @@ dropZone.addEventListener("submit", e => {
   }
   uploadToServer(selectedFile);
 });
+
+const links = document.querySelectorAll('.link');
+

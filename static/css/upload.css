@@ -1,43 +1,7 @@
 @import "variables.css";
 @import "headers.css";
+@import "base.css";
 
-body {
-  background-color: var(--bg-color-light, #F2F5FF);
-  font-family: "Inter", sans-serif;
-  text-align: center;
-  height: 100vh;
-  color: var(--text-color-dark, #0B0B0B);
-}
-
-.container {
-  max-width: 539px;
-  height: 100%;
-  margin: 0 auto;
-}
-
-.header__wrapper {
-  padding-bottom: 50px;
-}
-
-.links__wrapper {
-  max-width: 160px;
-  max-height: 24px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 50px;
-  .link {
-    text-decoration: none;
-    font-size: 20px;
-    font-weight: bold;
-    line-height: normal;
-    letter-spacing: 0%;
-    color: #ADC0F8;
-  }
-  .link.active {
-    color: #0060FF;
-  }
-}
 
 #dropzone {
   position: relative;
