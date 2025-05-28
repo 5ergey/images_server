@@ -117,9 +117,9 @@ class BackendHandler(BaseHTTPRequestHandler):
 
         # Проверка расширения
         name, ext = os.path.splitext(file_field.filename.lower())
-        if ext not in ALLOWED_EXTENSIONS:
+        if ext[1:] not in ALLOWED_EXTENSIONS:
             self.send_json_message(400, 'error', 'Вы пытались загрузить файл с запрещенным расширением')
-            logging.error(f'Ошибка: Пытались загрузить файл {name}{ext} с запрещенным расширением')
+            logging.error(f'Ошибка: Пытались загрузить файл {name}{ext} с запрещенным расширением {ext}')
             return
 
         # Чтение содержимого файла
