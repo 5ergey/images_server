@@ -41,16 +41,21 @@
 .items {
   display: flex;
   margin-bottom: 16px;
-  gap: 16px;
   align-items: center;
   font-size: 14px;
   line-height: 20px;
   .icon {
     flex-basis: 16px;
   }
+  .filename {
+    width: 200px;
+    text-align: left;
+    padding-left: 10px;
+  }
   .delete {
     align-self: end;
     padding-right: 5px;
+    width: 35px;
   }
   .url {
     padding-left: 60px;
