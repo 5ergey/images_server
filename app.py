@@ -6,7 +6,7 @@ import uuid
 import json
 import logging
 
-ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif']
+ALLOWED_EXTENSIONS = ['jpg', 'png', 'gif']
 MAX_FILE_SIZE = 5 * 1024 * 1024 # 5 Мбайт
 LOGS_DIR = 'logs'
 IMAGES_DIR = 'images'
