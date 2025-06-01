@@ -7,7 +7,7 @@ const urlCopyDiv = document.querySelector(".url__copy");
 
 // === Константы и состояние ===
 const maxSizeMB = 5;
-const allowedExtensions = ["jpg", "jpeg", "png", "gif"];
+const allowedExtensions = ["jpg", "png", "gif"];
 const hoverClassName = "hover";
 const safeMode = false;
 
