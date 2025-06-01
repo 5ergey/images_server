@@ -27,10 +27,17 @@ fetch('/images?data=true') // Запрос к серверу, чтобы пол�
       filenameDiv.className = 'filename';
       filenameDiv.textContent = filename; // показываем имя файла
 
-      // Создаём блок с URL-адресом файла (полный путь)
+      // Создаём блок с URL-адресом файла
+      const urlLink = document.createElement('a');
+      urlLink.className = 'link';
+      urlLink.href = `http://localhost/images/${filename}`;
+      urlLink.target = '_blank'; // открыть в новой вкладке (опционально)
+
       const urlDiv = document.createElement('div');
       urlDiv.className = 'url';
       urlDiv.textContent = `http://localhost/images/${filename}`;
+
+      urlLink.appendChild(urlDiv);
 
       // Создаём ссылку для удаления файла
       const deleteLink = document.createElement('a');
@@ -73,7 +80,7 @@ fetch('/images?data=true') // Запрос к серверу, чтобы пол�
       // Собираем блок: добавляем все элементы внутрь корневого .items
       itemDiv.appendChild(iconImg);
       itemDiv.appendChild(filenameDiv);
-      itemDiv.appendChild(urlDiv);
+      itemDiv.appendChild(urlLink);
       itemDiv.appendChild(deleteLink);
 
       // Вставляем готовый блок внутрь контейнера .items__wrapper
