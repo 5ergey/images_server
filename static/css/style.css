@@ -40,7 +40,7 @@ body {
 
 .img__wrapper {
   margin-top: auto;
-  img {
+  .random-img {
     max-height: 559px;
   }
 }
