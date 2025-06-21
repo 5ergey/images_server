@@ -149,7 +149,6 @@ class BackendHandler(BaseHTTPRequestHandler):
                 db.save_file(unique_filename, file_field.filename, len(file_data), ext[1:])
             logging.info(f'Файл {file_field.filename}{ext} добавлен в базу данных под уникальным именем {unique_filename}')
         except Exception as e:
-            logging.error(f'Ошибка при добавлении файла {file_field.filename}{ext} в базу данных')
             # Если ошибка в БД — удаляем файл с диска
             os.remove(filepath)
             logging.error(f'Ошибка при добавлении файла в БД. Файл {unique_filename} удалён. Ошибка: {e}')
@@ -185,11 +184,9 @@ class BackendHandler(BaseHTTPRequestHandler):
         else:
             self.send_error(404, 'Not found')
 if __name__ == '__main__':
-    logging.info("Начинаем миграции")
     try:
         with PostgresManager(postgres_config) as db:
             db.create_table()
-            logging.info("Таблица должна быть создана")
     except Exception as e:
         logging.exception("Ошибка при создании таблицы")
     PORT = 8000
