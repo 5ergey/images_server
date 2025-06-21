@@ -6,6 +6,8 @@ import uuid
 import json
 import logging
 
+from db_manager import PostgresManager, postgres_config
+
 
 ALLOWED_EXTENSIONS = ['jpg', 'png', 'gif']
 MAX_FILE_SIZE = 5 * 1024 * 1024 # 5 Мбайт
@@ -137,6 +139,13 @@ class BackendHandler(BaseHTTPRequestHandler):
         with open(f'images/{unique_filename}', 'wb') as f:
             f.write(file_data)
 
+        with PostgresManager(postgres_config) as db:
+            try:
+                db.save_file(unique_filename, file_field.filename, len(file_data), ext[1:])
+                logging.info(f'Файл {file_field.filename}{ext} добавлен в базу данных под уникальным именем {unique_filename}')
+            except Exception as e:
+                logging.error(f'Ошибка при загрузке файла {file_field.filename}{ext}')
+
         #Отправка сведений об успешной загрузке
         self.send_json_message(200, 'success', 'Файл успешно загружен',
                                f'http://localhost/images/{unique_filename}')
@@ -167,6 +176,13 @@ class BackendHandler(BaseHTTPRequestHandler):
         else:
             self.send_error(404, 'Not found')
 if __name__ == '__main__':
+    logging.info("Начинаем миграции")
+    try:
+        with PostgresManager(postgres_config) as db:
+            db.create_table()
+            logging.info("Таблица должна быть создана")
+    except Exception as e:
+        logging.exception("Ошибка при создании таблицы")
     PORT = 8000
     server = ThreadingHTTPServer(('0.0.0.0', PORT), BackendHandler)
     server.serve_forever()

@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: backend
     volumes:
+      - .:/app
       - ./images:/app/images
       - ./logs:/app/logs
       - ./static:/app/static
@@ -16,11 +17,11 @@ services:
     depends_on:
       - postgres
     environment:
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=${POSTGRES_PORT}
-      - DATABASE_NAME=${POSTGRES_DB}
-      - DATABASE_USER=${POSTGRES_USER}
-      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   postgres:
     image: postgres:17.5
