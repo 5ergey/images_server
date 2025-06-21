@@ -14,7 +14,7 @@ WORKDIR /app
 ENV PYTHONPATH="/usr/local/lib/python3.12/site-packages"
 
 COPY --from=builder /install /usr/local/lib/python3.12/site-packages
-COPY app.py .
+COPY . .
 
 CMD ["python", "app.py"]
 
