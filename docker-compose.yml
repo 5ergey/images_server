@@ -5,7 +5,6 @@ services:
       dockerfile: Dockerfile
     container_name: backend
     volumes:
-      - .:/app
       - ./images:/app/images
       - ./logs:/app/logs
       - ./static:/app/static

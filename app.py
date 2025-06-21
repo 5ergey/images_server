@@ -134,17 +134,26 @@ class BackendHandler(BaseHTTPRequestHandler):
 
         # Генерация уникального имени
         unique_filename = f"{uuid.uuid4().hex[:16]}{ext}"
+        filepath = os.path.join(IMAGES_DIR, unique_filename)
 
         #Сохранение файла
-        with open(f'images/{unique_filename}', 'wb') as f:
-            f.write(file_data)
-
-        with PostgresManager(postgres_config) as db:
-            try:
+        try:
+            with open(f'images/{unique_filename}', 'wb') as f:
+                f.write(file_data)
+        except Exception as e:
+            self.send_json_message(500, 'error', 'Не удалось сохранить файл на диск')
+            logging.error(f'Ошибка: Не удалось сохранить файл {unique_filename} — {e}')
+            return
+        try:
+            with PostgresManager(postgres_config) as db:
                 db.save_file(unique_filename, file_field.filename, len(file_data), ext[1:])
-                logging.info(f'Файл {file_field.filename}{ext} добавлен в базу данных под уникальным именем {unique_filename}')
-            except Exception as e:
-                logging.error(f'Ошибка при загрузке файла {file_field.filename}{ext}')
+            logging.info(f'Файл {file_field.filename}{ext} добавлен в базу данных под уникальным именем {unique_filename}')
+        except Exception as e:
+            logging.error(f'Ошибка при добавлении файла {file_field.filename}{ext} в базу данных')
+            # Если ошибка в БД — удаляем файл с диска
+            os.remove(filepath)
+            logging.error(f'Ошибка при добавлении файла в БД. Файл {unique_filename} удалён. Ошибка: {e}')
+            return
 
         #Отправка сведений об успешной загрузке
         self.send_json_message(200, 'success', 'Файл успешно загружен',
