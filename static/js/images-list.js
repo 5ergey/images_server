@@ -2,10 +2,24 @@ fetch('/images-list?data=true') // Запрос к серверу, чтобы п
   .then(res => res.json()) // Парсим ответ как JSON — ожидаем массив объектов
   .then(data => {
     const wrapper = document.querySelector('.items__wrapper');
+    const tableHeader = document.querySelector('.table__title');
+
     if (!wrapper) {
       console.error('Контейнер .items__wrapper не найден!');
       return;
     }
+
+    if (data.length === 0) {
+      if (tableHeader) tableHeader.style.display = 'none';
+
+      const emptyMsg = document.createElement('div');
+      emptyMsg.className = 'no-files';
+      emptyMsg.textContent = 'Файлы не найдены.';
+      wrapper.appendChild(emptyMsg);
+      return;
+    }
+
+    if (tableHeader) tableHeader.style.display = 'flex'; // на всякий случай явно показываем
 
     data.forEach(file => {
       const itemDiv = document.createElement('div');
@@ -25,6 +39,11 @@ fetch('/images-list?data=true') // Запрос к серверу, чтобы п
       urlLink.href = `http://localhost/images/${file.filename}`;
       urlLink.target = '_blank';
 
+      const urlDiv = document.createElement('div');
+      urlDiv.className = 'url';
+      urlDiv.textContent = urlLink.href;
+      urlLink.appendChild(urlDiv);
+
       const sizeDiv = document.createElement('div');
       sizeDiv.className = 'size';
       sizeDiv.textContent = `${Math.round(file.size / 1024)} KB`;
@@ -32,12 +51,6 @@ fetch('/images-list?data=true') // Запрос к серверу, чтобы п
       const dateDiv = document.createElement('div');
       dateDiv.className = 'date';
       dateDiv.textContent = file.upload_time.slice(0, 16);
-
-      const urlDiv = document.createElement('div');
-      urlDiv.className = 'url';
-      urlDiv.textContent = `http://localhost/images/${file.filename}`;
-
-      urlLink.appendChild(urlDiv);
 
       const deleteLink = document.createElement('a');
       deleteLink.href = '#';
@@ -58,6 +71,14 @@ fetch('/images-list?data=true') // Запрос к серверу, чтобы п
         .then(res => {
           if (res.ok) {
             itemDiv.remove();
+            // Если после удаления не осталось файлов — скрыть заголовки
+            if (wrapper.children.length === 0 && tableHeader) {
+              tableHeader.style.display = 'none';
+              const emptyMsg = document.createElement('div');
+              emptyMsg.className = 'no-files';
+              emptyMsg.textContent = 'Файлы не найдены.';
+              wrapper.appendChild(emptyMsg);
+            }
           } else {
             console.error('Не удалось удалить файл на сервере');
             alert('Ошибка при удалении файла');
