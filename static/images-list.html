@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>images</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/images-list.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header__wrapper">
+        <h1 class="header__title">Upload Photos</h1>
+        <h2 class="header__subtitle">Upload selfies, memes, or any fun pictures here.</h2>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+      <div class="links__wrapper">
+        <a class="link" href="/upload">Upload</a>
+        <a class="link active" href="/images-list">Images</a>
+      </div>
+      <div class="table__wrapper">
+        <div class="table__title">
+          <div class="title filename__header">Имя</div>
+          <div class="title link__header">Ссылка</div>
+          <div class="title size__header">Размер</div>
+          <div class="title date__header">Дата</div>
+          <div class="title delete__header">Удалить</div>
+        </div>
+        <div class="items__wrapper">
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="js/images-list.js"></script>
+</body>
+</html>

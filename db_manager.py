@@ -20,7 +20,11 @@ class PostgresManager:
 
     def __enter__(self):
         # При входе в with — подключаемся к базе
-        self.conn = psycopg2.connect(**self.config)
+        try:
+            self.conn = psycopg2.connect(**self.config)
+            print("Соединение с базой данных успешно")
+        except Exception as e:
+            print(f"Ошибка подключения: {e}")
         self.conn.autocommit = self.autocommit
         self.cur = self.conn.cursor()
         return self  # возвращаем объект для работы
