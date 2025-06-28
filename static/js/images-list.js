@@ -1,4 +1,4 @@
-fetch('/images-list?data=true') // Запрос к серверу, чтобы получить список объектов файлов
+fetch('/images-list?page=') // Запрос к серверу, чтобы получить список объектов файлов
   .then(res => res.json()) // Парсим ответ как JSON — ожидаем массив объектов
   .then(data => {
     const wrapper = document.querySelector('.items__wrapper');

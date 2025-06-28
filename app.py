@@ -93,16 +93,19 @@ class BackendHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps(files).encode())
                 return
-            elif self.path == '/images-list?data=true':
+            elif self.path.startswith('/images-list?page='):
                 with PostgresManager(postgres_config) as db:
-                    rows = db.execute('SELECT * FROM images;')
+                    page_offset = (int(self.path.split('=')[1]) if self.path.split('=')[1].isdigit() else 1)
+                    count_result = db.execute('SELECT COUNT(*) FROM images;')
+                    total_count = count_result[0][0]
+                    rows = db.execute(f'SELECT * FROM images LIMIT=1 OFFSET={page_offset};')
                     self.send_response(200)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
 
                     # Преобразуем к списку словарей (читаемый JSON)
                     columns = ['id', 'filename', 'original_name', 'size', 'upload_time', 'file_type']
-                    json_data = [dict(zip(columns, row)) for row in rows]
+                    json_data = {'list':[dict(zip(columns, row)) for row in rows], 'total':total_count}
                     self.wfile.write(json.dumps(json_data, default=str).encode('utf-8'))
                     return
             self.handle_file_request(self.path)
