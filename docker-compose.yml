@@ -1,0 +1,77 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend
+    volumes:
+      - ./images:/app/images
+      - ./logs:/app/logs
+      - ./static:/app/static
+    expose:
+      - "8000"
+    restart: unless-stopped
+    networks:
+      - internal
+    depends_on:
+      - postgres
+    environment:
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+  postgres:
+    image: postgres:17.5
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  pgadmin:
+    image: dpage/pgadmin4:latest  # Официальный образ pgAdmin
+    container_name: pgadmin
+    restart: unless-stopped
+    ports:
+      - "5050:80"  # pgAdmin будет доступен на http://localhost:5050
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - internal
+    depends_on:
+      - postgres
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./static/img:/static/img:ro
+      - ./static/icon:/static/icon:ro
+      - ./static/favicon.ico:/static/favicon.ico:ro
+      - ./images:/images:ro
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  pgdata:
+  pgadmin_data:
