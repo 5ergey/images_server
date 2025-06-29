@@ -6,13 +6,15 @@ const pageIndicator = document.getElementById('pageIndicator');
 
 let currentPage = 1;
 let totalFiles = 0;
-const limit = 1; // Кол-во файлов на странице
+let limit = 1; // теперь динамический
 
 function loadPage(page) {
   fetch(`/images-list?page=${page}`)
     .then(res => res.json())
     .then(data => {
       totalFiles = data.total;
+      currentPage = data.page;
+      limit = data.limit;  // получаем с сервера
       const files = data.list;
 
       wrapper.innerHTML = '';
@@ -22,15 +24,20 @@ function loadPage(page) {
 
         const emptyMsg = document.createElement('div');
         emptyMsg.className = 'no-files';
-        emptyMsg.textContent = 'Файлы не найдены.';
+        emptyMsg.textContent = 'Нет загруженных изображений';
         wrapper.appendChild(emptyMsg);
 
-        updateButtons();
-        updatePageIndicator();
-        return;
+        if (pageIndicator) pageIndicator.style.display = 'none';
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+
+        return; // не вызываем updateButtons и updatePageIndicator
       }
 
       if (tableHeader) tableHeader.style.display = 'flex';
+      if (pageIndicator) pageIndicator.style.display = 'block';
+      if (prevBtn) prevBtn.style.display = 'inline-block';
+      if (nextBtn) nextBtn.style.display = 'inline-block';
 
       files.forEach(file => {
         const itemDiv = document.createElement('div');
@@ -63,6 +70,10 @@ function loadPage(page) {
         dateDiv.className = 'date';
         dateDiv.textContent = file.upload_time.slice(0, 16);
 
+        const extDiv = document.createElement('div');
+        extDiv.className = 'ext';
+        extDiv.textContent = file.file_type;
+
         const deleteLink = document.createElement('a');
         deleteLink.href = '#';
 
@@ -94,6 +105,7 @@ function loadPage(page) {
         itemDiv.appendChild(urlLink);
         itemDiv.appendChild(sizeDiv);
         itemDiv.appendChild(dateDiv);
+        itemDiv.appendChild(extDiv);
         itemDiv.appendChild(deleteLink);
         wrapper.appendChild(itemDiv);
       });
@@ -107,20 +119,31 @@ function loadPage(page) {
 }
 
 function updateButtons() {
-  if (totalFiles === 0) {
-    prevBtn.disabled = true;
-    nextBtn.disabled = true;
-    return;
+  const maxPage = Math.ceil(totalFiles / limit);
+  const shouldHide = totalFiles === 0;
+
+  if (prevBtn) {
+    prevBtn.disabled = (currentPage <= 1 || shouldHide);
+    prevBtn.style.display = shouldHide ? 'none' : 'inline-block';
   }
 
-  prevBtn.disabled = (currentPage <= 1);
-  const maxPage = Math.ceil(totalFiles / limit);
-  nextBtn.disabled = (currentPage >= maxPage);
+  if (nextBtn) {
+    nextBtn.disabled = (currentPage >= maxPage || shouldHide);
+    nextBtn.style.display = shouldHide ? 'none' : 'inline-block';
+  }
 }
 
 function updatePageIndicator() {
+  if (!pageIndicator) return;
+
+  if (totalFiles === 0) {
+    pageIndicator.style.display = 'none';
+    return;
+  }
+
   const maxPage = Math.max(1, Math.ceil(totalFiles / limit));
   pageIndicator.textContent = `Страница ${currentPage} из ${maxPage}`;
+  pageIndicator.style.display = 'block';
 }
 
 prevBtn.addEventListener('click', () => {
@@ -138,4 +161,5 @@ nextBtn.addEventListener('click', () => {
   }
 });
 
+// Инициализация загрузки первой страницы
 loadPage(currentPage);

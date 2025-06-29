@@ -117,7 +117,7 @@ class BackendHandler(BaseHTTPRequestHandler):
                 except Exception:
                     page = 1
 
-                limit = 1
+                limit = 10
                 try:
                     with PostgresManager(postgres_config) as db:
                         count_result = db.execute('SELECT COUNT(*) FROM images;')
@@ -129,14 +129,21 @@ class BackendHandler(BaseHTTPRequestHandler):
 
                         offset = (page - 1) * limit
 
-                        rows = db.execute(f'SELECT * FROM images ORDER BY id LIMIT {limit} OFFSET {offset};')
+                        rows = db.execute(f'SELECT * FROM images ORDER BY upload_time DESC LIMIT {limit} OFFSET'
+                                          f' {offset};')
 
                         self.send_response(200)
                         self.send_header('Content-Type', 'application/json')
                         self.end_headers()
 
                         columns = ['id', 'filename', 'original_name', 'size', 'upload_time', 'file_type']
-                        json_data = {'list': [dict(zip(columns, row)) for row in rows], 'total': total_count}
+                        json_data = {
+                            'list': [dict(zip(columns, row)) for row in rows],
+                            'total': total_count,
+                            'page': page,
+                            'limit': limit
+
+                        }
                         self.wfile.write(json.dumps(json_data, default=str).encode('utf-8'))
                     return
                 except Exception as e:
@@ -201,7 +208,7 @@ class BackendHandler(BaseHTTPRequestHandler):
         try:
             with PostgresManager(postgres_config) as db:
                 db.save_file(unique_filename, file_field.filename, len(file_data), ext[1:])
-            logging.info(f'Файл {file_field.filename}{ext} добавлен в базу данных под уникальным именем {unique_filename}')
+            logging.info(f'Файл {file_field.filename} добавлен в базу данных под уникальным именем {unique_filename}')
         except Exception as e:
             # Если ошибка в БД — удаляем файл с диска
             os.remove(filepath)
@@ -233,14 +240,16 @@ class BackendHandler(BaseHTTPRequestHandler):
 
                 if not result:
                     self.send_error(404, 'Файл с таким ID не найден')
+                    logging.error(f"Попытка удалить файл с id:{file_id}")
                     return
-                logging.info(result)
                 filename = result[0][0]
                 filepath = os.path.abspath(os.path.join(IMAGES_DIR, filename))
 
                 # 4. Удаляем файл с диска
                 if os.path.isfile(filepath):
+                    logging.info(f"Файл {filename} удален с жесткого диска")
                     os.remove(filepath)
+
                 else:
                     logging.warning(f'Файл отсутствует на диске: {filename}')
 

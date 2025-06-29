@@ -3,7 +3,7 @@
 @import "base.css";
 
 .container {
-  max-width: 1000px;
+  max-width: 1200px;
 }
 
 .links__wrapper {
@@ -44,9 +44,17 @@
     flex-basis: 100px
 }
 
+.ext__header {
+    flex-basis: 50px;
+}
+
 .date__header {
     flex-basis: 150px;
 
+}
+
+.delete {
+    padding-left: 30px;
 }
 
 .items__wrapper {
@@ -75,10 +83,14 @@
   .size {
     flex-basis: 100px;
 
+
   }
   .date {
     flex-basis: 150px;
 
+  .ext {
+    flex-basis: 50px;
+  }
 
   }
   .link {
