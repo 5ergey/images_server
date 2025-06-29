@@ -87,3 +87,34 @@
 
   }
 }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 15px;
+  font-family: Arial, sans-serif;
+  user-select: none;
+}
+
+.arrow {
+  font-size: 24px;
+  padding: 6px 12px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
+}
+
+.arrow:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.arrow:disabled {
+  background-color: #ccc;
+  cursor: default;
+  color: #666;
+}

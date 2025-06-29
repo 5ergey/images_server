@@ -109,24 +109,27 @@ class BackendHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps(files).encode())
                 return
-            elif self.path.startswith('/images-list?data=true'):
-                #try:
-                    # Извлекаем номер страницы, по умолчанию 1
-                    #query_str = self.path.split('?', 1)[1]
-                    #page_str = query_str.split('=')[1]
-                    #page = int(page_str) if page_str.isdigit() and int(page_str) > 0 else 1
-                #except Exception:
-                   # page = 1
+            elif self.path.startswith('/images-list?page='):
+                try:
+                    query_str = self.path.split('?', 1)[1]
+                    page_str = query_str.split('=')[1]
+                    page = int(page_str) if page_str.isdigit() and int(page_str) > 0 else 1
+                except Exception:
+                    page = 1
 
-                #limit = 10
-                #offset = (page - 1) * limit
-
+                limit = 1
                 try:
                     with PostgresManager(postgres_config) as db:
                         count_result = db.execute('SELECT COUNT(*) FROM images;')
                         total_count = count_result[0][0]
-                        #rows = db.execute(f'SELECT * FROM images LIMIT {limit} OFFSET {offset};')
-                        rows = db.execute(f'SELECT * FROM images;')
+
+                        max_page = max(1, (total_count + limit - 1) // limit)
+                        if page > max_page:
+                            page = max_page
+
+                        offset = (page - 1) * limit
+
+                        rows = db.execute(f'SELECT * FROM images ORDER BY id LIMIT {limit} OFFSET {offset};')
 
                         self.send_response(200)
                         self.send_header('Content-Type', 'application/json')

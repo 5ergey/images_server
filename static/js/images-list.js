@@ -1,103 +1,141 @@
-fetch('/images-list?data=true')
-  .then(res => res.json())
-  .then(data => {
-    const wrapper = document.querySelector('.items__wrapper');
-    const tableHeader = document.querySelector('.table__title');
+const wrapper = document.querySelector('.items__wrapper');
+const tableHeader = document.querySelector('.table__title');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const pageIndicator = document.getElementById('pageIndicator');
 
-    if (!wrapper) {
-      console.error('Контейнер .items__wrapper не найден!');
-      return;
-    }
+let currentPage = 1;
+let totalFiles = 0;
+const limit = 1; // Кол-во файлов на странице
 
-    // Здесь data теперь объект с двумя ключами: list и total
-    if (!data.list || data.list.length === 0) {
-      if (tableHeader) tableHeader.style.display = 'none';
+function loadPage(page) {
+  fetch(`/images-list?page=${page}`)
+    .then(res => res.json())
+    .then(data => {
+      totalFiles = data.total;
+      const files = data.list;
 
-      const emptyMsg = document.createElement('div');
-      emptyMsg.className = 'no-files';
-      emptyMsg.textContent = 'Файлы не найдены.';
-      wrapper.appendChild(emptyMsg);
-      return;
-    }
+      wrapper.innerHTML = '';
 
-    if (tableHeader) tableHeader.style.display = 'flex';
+      if (files.length === 0) {
+        if (tableHeader) tableHeader.style.display = 'none';
 
-    // Проходим по data.list, а не просто по data
-    data.list.forEach(file => {
-      const itemDiv = document.createElement('div');
-      itemDiv.className = 'items';
+        const emptyMsg = document.createElement('div');
+        emptyMsg.className = 'no-files';
+        emptyMsg.textContent = 'Файлы не найдены.';
+        wrapper.appendChild(emptyMsg);
 
-      const iconImg = document.createElement('img');
-      iconImg.src = '../icon/photo_icon.svg';
-      iconImg.alt = 'photo_icon';
-      iconImg.className = 'icon';
+        updateButtons();
+        updatePageIndicator();
+        return;
+      }
 
-      const filenameDiv = document.createElement('div');
-      filenameDiv.className = 'filename';
-      filenameDiv.textContent = file.original_name;
+      if (tableHeader) tableHeader.style.display = 'flex';
 
-      const urlLink = document.createElement('a');
-      urlLink.className = 'link';
-      urlLink.href = `http://localhost/images/${file.filename}`;
-      urlLink.target = '_blank';
+      files.forEach(file => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'items';
 
-      const urlDiv = document.createElement('div');
-      urlDiv.className = 'url';
-      urlDiv.textContent = urlLink.href;
-      urlLink.appendChild(urlDiv);
+        const iconImg = document.createElement('img');
+        iconImg.src = '../icon/photo_icon.svg';
+        iconImg.alt = 'photo_icon';
+        iconImg.className = 'icon';
 
-      const sizeDiv = document.createElement('div');
-      sizeDiv.className = 'size';
-      sizeDiv.textContent = `${Math.round(file.size / 1024)} KB`;
+        const filenameDiv = document.createElement('div');
+        filenameDiv.className = 'filename';
+        filenameDiv.textContent = file.original_name;
 
-      const dateDiv = document.createElement('div');
-      dateDiv.className = 'date';
-      dateDiv.textContent = file.upload_time.slice(0, 16);
+        const urlLink = document.createElement('a');
+        urlLink.className = 'link';
+        urlLink.href = `http://localhost/images/${file.filename}`;
+        urlLink.target = '_blank';
 
-      const deleteLink = document.createElement('a');
-      deleteLink.href = '#';
+        const urlDiv = document.createElement('div');
+        urlDiv.className = 'url';
+        urlDiv.textContent = urlLink.href;
+        urlLink.appendChild(urlDiv);
 
-      const deleteImg = document.createElement('img');
-      deleteImg.src = '../icon/delete.png';
-      deleteImg.alt = 'Удалить';
-      deleteImg.className = 'delete';
+        const sizeDiv = document.createElement('div');
+        sizeDiv.className = 'size';
+        sizeDiv.textContent = `${Math.round(file.size / 1024)} KB`;
 
-      deleteLink.appendChild(deleteImg);
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'date';
+        dateDiv.textContent = file.upload_time.slice(0, 16);
 
-      deleteLink.addEventListener('click', (e) => {
-        e.preventDefault();
+        const deleteLink = document.createElement('a');
+        deleteLink.href = '#';
 
-        fetch(`/delete/${file.id}`, {
-          method: 'DELETE'
-        })
-        .then(res => {
-          if (res.ok) {
-            itemDiv.remove();
-            if (wrapper.children.length === 0 && tableHeader) {
-              tableHeader.style.display = 'none';
-              const emptyMsg = document.createElement('div');
-              emptyMsg.className = 'no-files';
-              emptyMsg.textContent = 'Файлы не найдены.';
-              wrapper.appendChild(emptyMsg);
+        const deleteImg = document.createElement('img');
+        deleteImg.src = '../icon/delete.png';
+        deleteImg.alt = 'Удалить';
+        deleteImg.className = 'delete';
+
+        deleteLink.appendChild(deleteImg);
+
+        deleteLink.addEventListener('click', (e) => {
+          e.preventDefault();
+
+          fetch(`/delete/${file.id}`, {
+            method: 'DELETE'
+          })
+          .then(res => {
+            if (res.ok) {
+              loadPage(currentPage);
+            } else {
+              alert('Ошибка при удалении файла');
             }
-          } else {
-            console.error('Не удалось удалить файл на сервере');
-            alert('Ошибка при удалении файла');
-          }
-        })
-        .catch(err => {
-          console.error('Ошибка удаления файла:', err);
-          alert('Ошибка соединения при удалении');
+          })
+          .catch(() => alert('Ошибка соединения при удалении'));
         });
+
+        itemDiv.appendChild(iconImg);
+        itemDiv.appendChild(filenameDiv);
+        itemDiv.appendChild(urlLink);
+        itemDiv.appendChild(sizeDiv);
+        itemDiv.appendChild(dateDiv);
+        itemDiv.appendChild(deleteLink);
+        wrapper.appendChild(itemDiv);
       });
 
-      itemDiv.appendChild(iconImg);
-      itemDiv.appendChild(filenameDiv);
-      itemDiv.appendChild(urlLink);
-      itemDiv.appendChild(sizeDiv);
-      itemDiv.appendChild(dateDiv);
-      itemDiv.appendChild(deleteLink);
-      wrapper.appendChild(itemDiv);
+      updateButtons();
+      updatePageIndicator();
+    })
+    .catch(e => {
+      console.error('Ошибка:', e);
     });
-  })
-  .catch(e => console.error('Ошибка:', e));
+}
+
+function updateButtons() {
+  if (totalFiles === 0) {
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+
+  prevBtn.disabled = (currentPage <= 1);
+  const maxPage = Math.ceil(totalFiles / limit);
+  nextBtn.disabled = (currentPage >= maxPage);
+}
+
+function updatePageIndicator() {
+  const maxPage = Math.max(1, Math.ceil(totalFiles / limit));
+  pageIndicator.textContent = `Страница ${currentPage} из ${maxPage}`;
+}
+
+prevBtn.addEventListener('click', () => {
+  if (currentPage > 1) {
+    currentPage--;
+    loadPage(currentPage);
+  }
+});
+
+nextBtn.addEventListener('click', () => {
+  const maxPage = Math.ceil(totalFiles / limit);
+  if (currentPage < maxPage) {
+    currentPage++;
+    loadPage(currentPage);
+  }
+});
+
+loadPage(currentPage);
