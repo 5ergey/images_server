@@ -11,6 +11,16 @@ postgres_config = {
 }
 
 
+def get_postgres_config():
+    return {
+        "dbname": os.getenv("POSTGRES_DB"),
+        "user": os.getenv("POSTGRES_USER"),
+        "password": os.getenv("POSTGRES_PASSWORD"),
+        "host": os.getenv("POSTGRES_HOST"),
+        "port": os.getenv("POSTGRES_PORT")
+    }
+
+
 class PostgresManager:
     def __init__(self, config, autocommit=False):
         self.config = config
@@ -19,15 +29,16 @@ class PostgresManager:
         self.cur = None
 
     def __enter__(self):
-        # При входе в with — подключаемся к базе
         try:
+            print("⏳ Подключение к базе с конфигом:", self.config)
             self.conn = psycopg2.connect(**self.config)
-            print("Соединение с базой данных успешно")
+            self.conn.autocommit = self.autocommit
+            self.cur = self.conn.cursor()
+            print("✅ Подключение успешно")
+            return self
         except Exception as e:
-            print(f"Ошибка подключения: {e}")
-        self.conn.autocommit = self.autocommit
-        self.cur = self.conn.cursor()
-        return self  # возвращаем объект для работы
+            print("❌ Ошибка подключения к БД:", e)
+            raise
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # При выходе из with — закрываем курсор и соединение
@@ -35,6 +46,9 @@ class PostgresManager:
             self.cur.close()
         if self.conn:
             self.conn.close()
+
+
+
 
     def execute(self, query, params=None):
         self.cur.execute(query, params)

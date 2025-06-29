@@ -1,5 +1,5 @@
-fetch('/images-list?page=') // Запрос к серверу, чтобы получить список объектов файлов
-  .then(res => res.json()) // Парсим ответ как JSON — ожидаем массив объектов
+fetch('/images-list?data=true')
+  .then(res => res.json())
   .then(data => {
     const wrapper = document.querySelector('.items__wrapper');
     const tableHeader = document.querySelector('.table__title');
@@ -9,7 +9,8 @@ fetch('/images-list?page=') // Запрос к серверу, чтобы пол
       return;
     }
 
-    if (data.length === 0) {
+    // Здесь data теперь объект с двумя ключами: list и total
+    if (!data.list || data.list.length === 0) {
       if (tableHeader) tableHeader.style.display = 'none';
 
       const emptyMsg = document.createElement('div');
@@ -19,9 +20,10 @@ fetch('/images-list?page=') // Запрос к серверу, чтобы пол
       return;
     }
 
-    if (tableHeader) tableHeader.style.display = 'flex'; // на всякий случай явно показываем
+    if (tableHeader) tableHeader.style.display = 'flex';
 
-    data.forEach(file => {
+    // Проходим по data.list, а не просто по data
+    data.list.forEach(file => {
       const itemDiv = document.createElement('div');
       itemDiv.className = 'items';
 
@@ -71,7 +73,6 @@ fetch('/images-list?page=') // Запрос к серверу, чтобы пол
         .then(res => {
           if (res.ok) {
             itemDiv.remove();
-            // Если после удаления не осталось файлов — скрыть заголовки
             if (wrapper.children.length === 0 && tableHeader) {
               tableHeader.style.display = 'none';
               const emptyMsg = document.createElement('div');

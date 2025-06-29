@@ -5,9 +5,11 @@ import cgi
 import uuid
 import json
 import logging
+import time
+import psycopg2
+from psycopg2 import OperationalError
 
-
-from db_manager import PostgresManager, postgres_config
+from db_manager import PostgresManager, postgres_config, get_postgres_config
 
 
 ALLOWED_EXTENSIONS = ['jpg', 'png', 'gif']
@@ -24,6 +26,20 @@ logging.basicConfig(
     filename=f'{LOGS_DIR}/app.log',
     filemode='a'
 )
+
+def wait_for_postgres(config, timeout=30):
+    start_time = time.time()
+    while True:
+        try:
+            conn = psycopg2.connect(**config)
+            conn.close()
+            print("✅ PostgreSQL доступен")
+            break
+        except OperationalError:
+            if time.time() - start_time > timeout:
+                raise TimeoutError("PostgreSQL не стал доступен за время ожидания")
+            print("⏳ Ожидаю PostgreSQL...")
+            time.sleep(1)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -93,20 +109,36 @@ class BackendHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps(files).encode())
                 return
-            elif self.path.startswith('/images-list?page='):
-                with PostgresManager(postgres_config) as db:
-                    page_offset = (int(self.path.split('=')[1]) if self.path.split('=')[1].isdigit() else 1)
-                    count_result = db.execute('SELECT COUNT(*) FROM images;')
-                    total_count = count_result[0][0]
-                    rows = db.execute(f'SELECT * FROM images LIMIT=1 OFFSET={page_offset};')
-                    self.send_response(200)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
+            elif self.path.startswith('/images-list?data=true'):
+                #try:
+                    # Извлекаем номер страницы, по умолчанию 1
+                    #query_str = self.path.split('?', 1)[1]
+                    #page_str = query_str.split('=')[1]
+                    #page = int(page_str) if page_str.isdigit() and int(page_str) > 0 else 1
+                #except Exception:
+                   # page = 1
 
-                    # Преобразуем к списку словарей (читаемый JSON)
-                    columns = ['id', 'filename', 'original_name', 'size', 'upload_time', 'file_type']
-                    json_data = {'list':[dict(zip(columns, row)) for row in rows], 'total':total_count}
-                    self.wfile.write(json.dumps(json_data, default=str).encode('utf-8'))
+                #limit = 10
+                #offset = (page - 1) * limit
+
+                try:
+                    with PostgresManager(postgres_config) as db:
+                        count_result = db.execute('SELECT COUNT(*) FROM images;')
+                        total_count = count_result[0][0]
+                        #rows = db.execute(f'SELECT * FROM images LIMIT {limit} OFFSET {offset};')
+                        rows = db.execute(f'SELECT * FROM images;')
+
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'application/json')
+                        self.end_headers()
+
+                        columns = ['id', 'filename', 'original_name', 'size', 'upload_time', 'file_type']
+                        json_data = {'list': [dict(zip(columns, row)) for row in rows], 'total': total_count}
+                        self.wfile.write(json.dumps(json_data, default=str).encode('utf-8'))
+                    return
+                except Exception as e:
+                    logging.error(f"Ошибка при загрузке списка изображений: {e}")
+                    self.send_error(500, 'Ошибка при обращении к базе данных')
                     return
             self.handle_file_request(self.path)
         else:
@@ -225,6 +257,7 @@ class BackendHandler(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     try:
+        wait_for_postgres(postgres_config)
         with PostgresManager(postgres_config) as db:
             db.create_table()
     except Exception as e:
@@ -232,3 +265,4 @@ if __name__ == '__main__':
     PORT = 8000
     server = ThreadingHTTPServer(('0.0.0.0', PORT), BackendHandler)
     server.serve_forever()
+
